@@ -1,4 +1,4 @@
-import 'phaser'
+import 'phaser';
 import { Map } from './Map/Map';
 import * as gv from './Utils/gameValues';
 import { RightCar } from './Player/RightCar';
@@ -14,6 +14,7 @@ export class GameScene extends Phaser.Scene {
     private playerCarsGroup: Phaser.GameObjects.Group;
     private enemiesGroup: Phaser.GameObjects.Group;
     private menuGameOver: Phaser.GameObjects.Group;
+    private startScreenImg: Phaser.GameObjects.Image;
 
     public leftCar: LeftCar;
     public rightCar: RightCar;
@@ -50,6 +51,7 @@ export class GameScene extends Phaser.Scene {
         this.load.image('normal_car_5', 'assets/normal_car_5.png');
         this.load.image('GameOverScreen', 'assets/gameOverScreen.png');
         this.load.image('RetryButton', 'assets/RetryButton.png');
+        this.load.image('StartScreenImg', 'assets/StartingScreen.png');
         
         this.load.spritesheet('explosionSS', 'assets/explosion.png', {
             frameWidth: gv.CAR.WIDTH,
@@ -77,15 +79,21 @@ export class GameScene extends Phaser.Scene {
     }
 
     create() {
+        this.state = GAME_STATE.START;
+        this.setKeys();
+        this.showStartingScreen();
+        map = new Map();
+    }
+
+    startGame() {
+        this.startScreenImg.destroy();
         this.state = GAME_STATE.RUNNING;
         this.currentSpeed = gv.INITIAL_SPEED;
         this.currentGap = gv.INITIAL_GAP;
         this.lifes = gv.INITIAL_LIFES;
-        map = new Map();
         this.createPlayer();
         spawner = new EnemySpawner();
 
-        this.setKeys();
         this.levelUpTimer();
         this.score = GameScene.makeScoreMath(this.currentLevel);
         this.showUI();
@@ -93,15 +101,14 @@ export class GameScene extends Phaser.Scene {
         this.physics.add.collider(this.enemiesGroup, this.playerCarsGroup, this.carCrash);
 
         this.input.addPointer(3);
-
-        scene.scale.lockOrientation('landscape');
     }
 
     update() {
-        spawner.currentEnemies.forEach((enemy) => enemy.update());
+        if (this.state === GAME_STATE.RUNNING) {
+            spawner.currentEnemies.forEach((enemy) => enemy.update());
+            map.move();
+        }
         this.keys();
-
-        map.move();
     }
 
     createPlayer() {
@@ -126,11 +133,16 @@ export class GameScene extends Phaser.Scene {
 
     keys() {
         window.addEventListener('keydown', () => {
-            if (this.moveKeys.left.isDown) {
-                this.changeTrack('left');
+            if (this.state === GAME_STATE.START) {
+                this.startGame();
             }
-            if (this.moveKeys.right.isDown) {
-                this.changeTrack('right');
+            else {
+                if (this.moveKeys.left.isDown) {
+                    this.changeTrack('left');
+                }
+                if (this.moveKeys.right.isDown) {
+                    this.changeTrack('right');
+                }
             }
         }, false);
 
@@ -138,19 +150,23 @@ export class GameScene extends Phaser.Scene {
             let xPointer1; 
             let xPointer2;
 
-            if (this.input.pointer1.isDown) {
-                xPointer1 = this.input.pointer1.x;
-            }
-            if (this.input.pointer2.isDown) {
-                xPointer2 = this.input.pointer2.x;
-            }
-
-            if (xPointer1 < gv.CANVAS.WIDTH / 2 || xPointer2 < gv.CANVAS.WIDTH / 2) {
-                this.changeTrack('left');
-            }
-
-            if (xPointer1 >= gv.CANVAS.WIDTH / 2 || xPointer2 >= gv.CANVAS.WIDTH / 2) {
-                this.changeTrack('right');
+            if (this.state === GAME_STATE.START) {
+                this.startGame();
+            } else {
+                if (this.input.pointer1.isDown) {
+                    xPointer1 = this.input.pointer1.x;
+                }
+                if (this.input.pointer2.isDown) {
+                    xPointer2 = this.input.pointer2.x;
+                }
+    
+                if (xPointer1 < gv.CANVAS.WIDTH / 2 || xPointer2 < gv.CANVAS.WIDTH / 2) {
+                    this.changeTrack('left');
+                }
+    
+                if (xPointer1 >= gv.CANVAS.WIDTH / 2 || xPointer2 >= gv.CANVAS.WIDTH / 2) {
+                    this.changeTrack('right');
+                }
             }
         }
     }
@@ -259,24 +275,38 @@ export class GameScene extends Phaser.Scene {
         this.lifesImageArray.push(secondLifeImage);
     }
 
+    showStartingScreen() {
+        const startingScreenImgWidth = 500;
+        const startingScreenImgHeight = 400;
+        const startingScreenX = gv.BACKGROUND.WIDTH / 2 - startingScreenImgWidth / 2;
+        const startingScreenY = gv.BACKGROUND.WIDTH / 2 - (startingScreenImgHeight - 100);
+        this.startScreenImg = this.add.image(startingScreenX, startingScreenY, 'StartScreenImg').setDepth(1).setOrigin(0, 0);
+    }
+
     gameOver() {
         this.state = GAME_STATE.GAME_OVER;
         const backgroundGameOverWidth = 300;
         const backgroundGameOverHeight = 400;
-        const backgroundGamoOverX = (game.canvas.width / 2) - backgroundGameOverWidth / 2;
-        const backgroundGamoOverY = (game.canvas.height / 2) - backgroundGameOverHeight / 2;
+        const backgroundGamoOverX = (gv.CANVAS.WIDTH / 2) - backgroundGameOverWidth / 2;
+        const backgroundGamoOverY = (gv.CANVAS.HEIGHT / 2) - backgroundGameOverHeight / 2;
 
         const gameOverScreen = this.add.image(backgroundGamoOverX, backgroundGamoOverY, 'GameOverScreen').setDepth(1).setOrigin(0, 0);
 
-        const scoretext1 = this.add.text(backgroundGamoOverX + 170, backgroundGamoOverY + 135, `${this.score}`, {
-            fontSize: '30px'
+        const scoretext1 = this.add.text(gv.BACKGROUND.WIDTH / 2, backgroundGamoOverY + 100, `${this.score}`, {
+            font: '40px Geneva',
+            align: 'center' // the alignment of the text is independent of the bounds, try changing to 'center' or 'right'
         }).setDepth(1.1);
 
-        const highScoretext1 = this.add.text(backgroundGamoOverX + 170, backgroundGamoOverY + 190, `${this.highScore}`, {
-            fontSize: '30px'
+        scoretext1.x -= scoretext1.width / 2;
+
+        const highScoretext1 = this.add.text(gv.BACKGROUND.WIDTH / 2, backgroundGamoOverY + 200, `${this.highScore}`, {
+            font: '35px Geneva',
+            align: 'center' // the alignment of the text is independent of the bounds, try changing to 'center' or 'right'
         }).setDepth(1.1);
 
-        const buttonWidth = 225;
+        highScoretext1.x -= highScoretext1.width / 2;
+
+        const buttonWidth = 219;
         const calcX = (backgroundGameOverWidth - buttonWidth) / 2;
         const btnRetry = this.add.image(backgroundGamoOverX + calcX, backgroundGamoOverY + 270, 'RetryButton').setOrigin(0, 0).setDepth(1.1);
         btnRetry.setInteractive({ useHandCursor: true });
@@ -292,25 +322,25 @@ export class GameScene extends Phaser.Scene {
     }
 }
 
-export var config = {
-  type: Phaser.AUTO,
-  scale: {
-    mode: Phaser.Scale.FIT,
-    parent: 'phaser-example',
-    autoCenter: Phaser.Scale.CENTER_BOTH,
-    width: 800,
-    height: 600
-  },
-  input: {
-    activePointers: 2,
-  },
-  physics: {
-    default: "arcade",
-    arcade: {
-      //debug: true,
-    }
-  },
-  scene: GameScene,
+export const config = {
+    type: Phaser.AUTO,
+    scale: {
+        mode: Phaser.Scale.FIT,
+        parent: 'phaser-example',
+        autoCenter: Phaser.Scale.CENTER_BOTH,
+        width: 800,
+        height: 600
+    },
+    input: {
+        activePointers: 2
+    },
+    physics: {
+        default: 'arcade',
+        arcade: {
+        //debug: true,
+        }
+    },
+    scene: GameScene
 };
 
-export let game = new Phaser.Game(config);
+export const game = new Phaser.Game(config);

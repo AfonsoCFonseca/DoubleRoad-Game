@@ -6,7 +6,8 @@ export interface Position {
 export enum GAME_STATE {
     RUNNING,
     PAUSE,
-    GAME_OVER
+    GAME_OVER,
+    START
 }
 
 export enum PLAYER_STATE {
