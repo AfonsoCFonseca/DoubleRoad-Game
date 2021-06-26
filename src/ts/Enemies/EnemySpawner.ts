@@ -1,8 +1,8 @@
-import { GameScene, scene } from '../App';
+import { scene } from '../App';
 import { Utils } from '../Utils/utils';
-import { ENEMY_TYPE, GAME_STATE } from '../game.interfaces';
+import { GAME_STATE } from '../game.interfaces';
 import { Enemy } from './Enemy';
-import { NormalEnemy } from './NormalEnemy';
+import NormalEnemy from './NormalEnemy';
 
 // eslint-disable-next-line import/prefer-default-export
 export class EnemySpawner {

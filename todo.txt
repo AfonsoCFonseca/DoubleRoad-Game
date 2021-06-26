@@ -1,7 +1,2 @@
-- remover o double collider
-- change enemy car
-- change color second player car
-- animation for explosition enemy
-- animation for explosition player
-- fazer score funcionar
+- remove double collider
 - put all cars in the same sheet

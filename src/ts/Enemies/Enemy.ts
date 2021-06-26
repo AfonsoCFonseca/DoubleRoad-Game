@@ -8,12 +8,9 @@ import { Utils } from '../Utils/utils';
 export abstract class Enemy extends Phaser.GameObjects.Sprite {
     public ID: string;
     private currentSpeed = gv.INITIAL_SPEED + 1;
-    public velocity: number;
-    private self;
-    private listener;
 
-    constructor(config: { x: number; y: number; imageName: string | Phaser.Textures.Texture; currentSpeed: number; }) {
-        super(scene, config.x, config.y, config.imageName);
+    constructor(config: { x: number; y: number; imageName: string | Phaser.Textures.Texture; currentSpeed: number; carFrame: number}) {
+        super(scene, config.x, config.y, config.imageName, config.carFrame);
 
         scene.physics.add.existing(this);
         scene.physics.world.enable(this);
@@ -24,7 +21,6 @@ export abstract class Enemy extends Phaser.GameObjects.Sprite {
 
         this.ID = Utils.generateId();
         this.currentSpeed = config.currentSpeed;
-        this.velocity = this.currentSpeed * gv.FRAMES_PER_SECOND;
 
         scene.enemiesGroup.add(this);
     }
@@ -36,20 +32,16 @@ export abstract class Enemy extends Phaser.GameObjects.Sprite {
         }
     }
 
-    setCurrentSpeed(newSpeed: number) {
-        this.currentSpeed = gv.INITIAL_SPEED + newSpeed;
-    }
-
     public delete() {        
-        new Explosion({x:this.x, y:this.y});
+        new Explosion({ x: this.x, y: this.y });
         spawner.deleteEnemy(this.ID);
         this.destroy();
     }
 }
 
 export class Explosion extends Phaser.GameObjects.Sprite {
-    constructor(config){
-        super(scene, config.x,config.y + 25, 'explosionSS')
+    constructor(config) {
+        super(scene, config.x, config.y + 25, 'explosionSS');
         scene.anims.create({
             key: 'explosion',
             frames: this.anims.generateFrameNumbers('explosionSS', { start: 0, end: 5 }),
@@ -57,7 +49,7 @@ export class Explosion extends Phaser.GameObjects.Sprite {
             repeat: false
         });
 
-        this.once('animationcomplete', () => this.destroy() )
+        this.once('animationcomplete', () => this.destroy() );
 
         scene.physics.add.existing(this);
         scene.physics.world.enable(this);

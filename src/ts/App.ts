@@ -1,10 +1,11 @@
 import 'phaser';
 import { Map } from './Map/Map';
 import * as gv from './Utils/gameValues';
-import { RightCar } from './Player/RightCar';
-import { LeftCar } from './Player/LeftCar';
+import RightCar from './Player/RightCar';
+import LeftCar from './Player/LeftCar';
 import { EnemySpawner } from './Enemies/EnemySpawner';
-import { GAME_STATE } from './game.interfaces';
+import { GAME_STATE, SIDE } from './game.interfaces';
+import { Utils } from './Utils/utils';
 
 export let map: Map;
 export let spawner: EnemySpawner;
@@ -13,8 +14,12 @@ export let scene: any;
 export class GameScene extends Phaser.Scene {
     private playerCarsGroup: Phaser.GameObjects.Group;
     private enemiesGroup: Phaser.GameObjects.Group;
+    private startUI: Phaser.GameObjects.Group;
     private menuGameOver: Phaser.GameObjects.Group;
     private startScreenImg: Phaser.GameObjects.Image;
+    private startScreenImgInitialY: number;
+    private startScreenImgGoingUp: boolean = false;
+    private startScreenImgFinallY: number = -8;
 
     public leftCar: LeftCar;
     public rightCar: RightCar;
@@ -29,7 +34,7 @@ export class GameScene extends Phaser.Scene {
     private currentGap: number;
     private inbetweenGap = 30;
     private score = 0;
-    private highScore = 0;
+    private highScore = parseInt(Utils.getCookie('highscore'), 10) || 0;
     private lifesImageArray = [];
     private lifes: number;
 
@@ -42,17 +47,16 @@ export class GameScene extends Phaser.Scene {
     }
 
     preload() {
-        this.load.image('background', 'assets/background1.jpg');
         this.load.image('background_overlay', 'assets/background_overlay1.png');
-        this.load.image('normal_car_1', 'assets/normal_car_1.png');
-        this.load.image('normal_car_2', 'assets/normal_car_2.png');
-        this.load.image('normal_car_3', 'assets/normal_car_3.png');
-        this.load.image('normal_car_4', 'assets/normal_car_4.png');
-        this.load.image('normal_car_5', 'assets/normal_car_5.png');
         this.load.image('GameOverScreen', 'assets/gameOverScreen.png');
         this.load.image('RetryButton', 'assets/RetryButton.png');
         this.load.image('StartScreenImg', 'assets/StartingScreen.png');
         
+        this.load.spritesheet('cars_sheet', 'assets/cars_sheet.png', {
+            frameWidth: gv.CAR.WIDTH,
+            frameHeight: gv.CAR.HEIGHT
+        });
+
         this.load.spritesheet('explosionSS', 'assets/explosion.png', {
             frameWidth: gv.CAR.WIDTH,
             frameHeight: gv.CAR.HEIGHT
@@ -74,6 +78,7 @@ export class GameScene extends Phaser.Scene {
 
         this.playerCarsGroup = this.add.group();
         this.enemiesGroup = this.add.group();
+        this.startUI = this.add.group();
 
         scene = this;
     }
@@ -86,7 +91,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     startGame() {
-        this.startScreenImg.destroy();
+        this.startUI.clear(true, true);
         this.state = GAME_STATE.RUNNING;
         this.currentSpeed = gv.INITIAL_SPEED;
         this.currentGap = gv.INITIAL_GAP;
@@ -134,9 +139,8 @@ export class GameScene extends Phaser.Scene {
     keys() {
         window.addEventListener('keydown', () => {
             if (this.state === GAME_STATE.START) {
-                this.startGame();
-            }
-            else {
+                //this.startGame();
+            } else {
                 if (this.moveKeys.left.isDown) {
                     this.changeTrack('left');
                 }
@@ -146,32 +150,40 @@ export class GameScene extends Phaser.Scene {
             }
         }, false);
 
+        window.addEventListener('keyup', () => {
+            if (this.state === GAME_STATE.START) {
+                this.startGame();
+            }
+        }, false);
+
+        scene.input.on('pointerup', () => {
+            if (this.state === GAME_STATE.START) {
+                this.startGame();
+            }
+        });
+
         if (this.input.pointer1.isDown || this.input.pointer2.isDown) {
             let xPointer1; 
             let xPointer2;
 
-            if (this.state === GAME_STATE.START) {
-                this.startGame();
-            } else {
-                if (this.input.pointer1.isDown) {
-                    xPointer1 = this.input.pointer1.x;
-                }
-                if (this.input.pointer2.isDown) {
-                    xPointer2 = this.input.pointer2.x;
-                }
-    
-                if (xPointer1 < gv.CANVAS.WIDTH / 2 || xPointer2 < gv.CANVAS.WIDTH / 2) {
-                    this.changeTrack('left');
-                }
-    
-                if (xPointer1 >= gv.CANVAS.WIDTH / 2 || xPointer2 >= gv.CANVAS.WIDTH / 2) {
-                    this.changeTrack('right');
-                }
+            if (this.input.pointer1.isDown) {
+                xPointer1 = this.input.pointer1.x;
+            }
+            if (this.input.pointer2.isDown) {
+                xPointer2 = this.input.pointer2.x;
+            }
+
+            if (xPointer1 < gv.CANVAS.WIDTH / 2 || xPointer2 < gv.CANVAS.WIDTH / 2) {
+                this.changeTrack('left');
+            }
+
+            if (xPointer1 >= gv.CANVAS.WIDTH / 2 || xPointer2 >= gv.CANVAS.WIDTH / 2) {
+                this.changeTrack('right');
             }
         }
     }
 
-    changeTrack(side: 'left' | 'right') {
+    changeTrack(side: SIDE) {
         const currentCar = side === 'left' ? this.leftCar : this.rightCar
         if (currentCar.movementCooldownRdy) {
             this.time.delayedCall(gv.KEY_PRESSED_TIMER, () => {
@@ -228,7 +240,6 @@ export class GameScene extends Phaser.Scene {
                 this.inbetweenGap = 10;
                 break;
         }
-
         this.currentSpeed += this.inbetweenSpeed;
         if (this.currentLevel < 50) {
             this.currentGap -= this.inbetweenGap;
@@ -249,7 +260,7 @@ export class GameScene extends Phaser.Scene {
         this.rightCar.setToInitialPosition();
         map.setMapSpeed(gv.INITIAL_SPEED);
         spawner.clearAllEnemies();
-        this.resetScore();
+        this.score = 0;
         this.menuGameOver.clear(true, true);
         this.state = GAME_STATE.RUNNING;
         spawner.createEnemy();
@@ -257,11 +268,11 @@ export class GameScene extends Phaser.Scene {
         this.currentLevelDraw.setText(`Score: ${this.score}`);
     }
 
-    resetScore() {
+    checkHighScore() {
         if (this.score > this.highScore) {
             this.highScore = this.score;
+            Utils.setCookie('highscore', this.highScore.toString(), 1);
         }
-        this.score = 0;
     }
 
     showUI() {
@@ -280,7 +291,27 @@ export class GameScene extends Phaser.Scene {
         const startingScreenImgHeight = 400;
         const startingScreenX = gv.BACKGROUND.WIDTH / 2 - startingScreenImgWidth / 2;
         const startingScreenY = gv.BACKGROUND.WIDTH / 2 - (startingScreenImgHeight - 100);
+        this.startScreenImgInitialY = startingScreenY;
         this.startScreenImg = this.add.image(startingScreenX, startingScreenY, 'StartScreenImg').setDepth(1).setOrigin(0, 0);
+
+        const startGameText = this.add.text(gv.BACKGROUND.WIDTH / 2, (gv.CANVAS.HEIGHT / 2) + 80, 'start game', {
+            font: '30px Geneva',
+            align: 'center' // the alignment of the text is independent of the bounds, try changing to 'center' or 'right'
+        }).setDepth(1.1);
+
+        startGameText.x -= startGameText.width / 2;
+        this.startUI.add(startGameText);
+        this.startUI.add(this.startScreenImg);
+
+        this.movementTitleScreen();
+    }
+
+    movementTitleScreen() {
+        Utils.makeAnimation(this.startScreenImg, { x: this.startScreenImg.x, y: this.startScreenImgInitialY + this.startScreenImgFinallY }, 1000, () => {
+            this.startScreenImgFinallY = this.startScreenImgGoingUp ? -8 : 8;
+            this.startScreenImgGoingUp = !this.startScreenImgGoingUp;
+            this.movementTitleScreen();
+        });
     }
 
     gameOver() {
@@ -290,9 +321,11 @@ export class GameScene extends Phaser.Scene {
         const backgroundGamoOverX = (gv.CANVAS.WIDTH / 2) - backgroundGameOverWidth / 2;
         const backgroundGamoOverY = (gv.CANVAS.HEIGHT / 2) - backgroundGameOverHeight / 2;
 
+        this.checkHighScore();
+
         const gameOverScreen = this.add.image(backgroundGamoOverX, backgroundGamoOverY, 'GameOverScreen').setDepth(1).setOrigin(0, 0);
 
-        const scoretext1 = this.add.text(gv.BACKGROUND.WIDTH / 2, backgroundGamoOverY + 100, `${this.score}`, {
+        const scoretext1 = this.add.text(gv.BACKGROUND.WIDTH / 2, backgroundGamoOverY + 115, `${this.score}`, {
             font: '40px Geneva',
             align: 'center' // the alignment of the text is independent of the bounds, try changing to 'center' or 'right'
         }).setDepth(1.1);
@@ -306,7 +339,7 @@ export class GameScene extends Phaser.Scene {
 
         highScoretext1.x -= highScoretext1.width / 2;
 
-        const buttonWidth = 219;
+        const buttonWidth = 206;
         const calcX = (backgroundGameOverWidth - buttonWidth) / 2;
         const btnRetry = this.add.image(backgroundGamoOverX + calcX, backgroundGamoOverY + 270, 'RetryButton').setOrigin(0, 0).setDepth(1.1);
         btnRetry.setInteractive({ useHandCursor: true });

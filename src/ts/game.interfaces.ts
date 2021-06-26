@@ -3,6 +3,7 @@ export interface Position {
     y: number
 }
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 export enum GAME_STATE {
     RUNNING,
     PAUSE,
@@ -10,14 +11,11 @@ export enum GAME_STATE {
     START
 }
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 export enum PLAYER_STATE {
     MOVING,
     IDLE,
-    PAUSE,
+    PAUSE
 }
 
-export enum ENEMY_TYPE {
-    NORMAL
-}
-
-export type side = 'left' | 'right';
+export type SIDE = 'left' | 'right';
