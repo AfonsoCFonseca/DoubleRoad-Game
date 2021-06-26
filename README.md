@@ -49,8 +49,8 @@ So, I changed the Y axis speed of the enemy and road to look like the player was
 # Scratches & Evolution
 
  <p float="left">
-   <img width="186" height="260" src='https://github.com/AfonsoCFonseca/Pacman-Game/blob/master/screenshots/30_05.png' >
-   <img width="186" height="260" src='https://github.com/AfonsoCFonseca/Pacman-Game/blob/master/screenshots/30_05_part2.png' >
-   <img width="186" height="260" src='https://github.com/AfonsoCFonseca/Pacman-Game/blob/master/screenshots/20_06.png' >
+   <img width="186" height="260" src='https://github.com/AfonsoCFonseca/DoubleRoad-Game/blob/master/screenshots/30_05.png' >
+   <img width="186" height="260" src='https://github.com/AfonsoCFonseca/DoubleRoad-Game/blob/master/screenshots/30_05_part2.png' >
+   <img width="186" height="260" src='https://github.com/AfonsoCFonseca/DoubleRoad-Game/blob/master/screenshots/20_06.png' >
 
  </p>
