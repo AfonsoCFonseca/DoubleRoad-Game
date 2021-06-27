@@ -51,6 +51,8 @@ export class GameScene extends Phaser.Scene {
         this.load.image('GameOverScreen', 'assets/gameOverScreen.png');
         this.load.image('RetryButton', 'assets/RetryButton.png');
         this.load.image('StartScreenImg', 'assets/StartingScreen.png');
+        this.load.image('UIScoringScreen', 'assets/UIScoringScreen.png');
+        this.load.image('carIcon', 'assets/carIcon.png');
         
         this.load.spritesheet('cars_sheet', 'assets/cars_sheet.png', {
             frameWidth: gv.CAR.WIDTH,
@@ -62,9 +64,9 @@ export class GameScene extends Phaser.Scene {
             frameHeight: gv.CAR.HEIGHT
         });
 
-        this.load.spritesheet('lifes', 'assets/lifes.png', {
-            frameWidth: gv.CAR.WIDTH / 2,
-            frameHeight: gv.CAR.HEIGHT / 2
+        this.load.spritesheet('lifebar', 'assets/lifebar.png', {
+            frameWidth: 45,
+            frameHeight: 22
         });
 
         this.load.spritesheet('carMov', 'assets/car1_anim_mov.png', {
@@ -216,7 +218,7 @@ export class GameScene extends Phaser.Scene {
         enemy.delete();
         this.lifes -= 1;
         if (this.lifes >= 0) {
-            this.lifesImageArray[this.lifes].setTexture('lifes', 1);
+            this.lifesImageArray[this.lifes].visible = false;
         } else {
             this.gameOver();
         } 
@@ -225,7 +227,7 @@ export class GameScene extends Phaser.Scene {
     levelUp() {
         this.currentLevel += 1;
         this.score = GameScene.makeScoreMath(this.currentLevel);
-        this.currentLevelDraw.setText(`Score: ${this.score}`);
+        this.currentLevelDraw.setText(`Score:${this.score}`);
 
         // eslint-disable-next-line default-case
         switch (this.currentLevel) {
@@ -255,7 +257,7 @@ export class GameScene extends Phaser.Scene {
         this.lifes = gv.INITIAL_LIFES;
         this.currentSpeed = gv.INITIAL_SPEED;
         this.currentGap = gv.INITIAL_GAP;
-        this.lifesImageArray.forEach((lifeImg, index) => this.lifesImageArray[index].setTexture('lifes', 0));
+        this.lifesImageArray.forEach((lifeImg, index) => this.lifesImageArray[index].visible = true);
         this.leftCar.setToInitialPosition();
         this.rightCar.setToInitialPosition();
         map.setMapSpeed(gv.INITIAL_SPEED);
@@ -265,7 +267,7 @@ export class GameScene extends Phaser.Scene {
         this.state = GAME_STATE.RUNNING;
         spawner.createEnemy();
         this.levelUpTimer();
-        this.currentLevelDraw.setText(`Score: ${this.score}`);
+        this.currentLevelDraw.setText(`Score:${this.score}`);
     }
 
     checkHighScore() {
@@ -276,14 +278,20 @@ export class GameScene extends Phaser.Scene {
     }
 
     showUI() {
-        this.currentLevelDraw = this.add.text(20, 15, `Score: ${this.score}`, {
-            fontSize: '30px'
+        this.currentLevelDraw = this.add.text(5, 45, `Score:${this.score}`, {
+            fontSize: '16px'
         }).setDepth(1.1);
 
-        const firstLifeImage = this.add.image(20, 50, 'lifes', 0).setDepth(1).setOrigin(0, 0);
-        const secondLifeImage = this.add.image(60, 50, 'lifes', 0).setDepth(1).setOrigin(0, 0);
-        this.lifesImageArray.push(firstLifeImage);
-        this.lifesImageArray.push(secondLifeImage);
+        const firstLifeImage1 = this.add.image(23, 10, 'lifebar', 0).setDepth(2).setOrigin(0, 0);
+        const secondLifeImage1 = this.add.image(68, 10, 'lifebar', 1).setDepth(2).setOrigin(0, 0);
+        this.lifesImageArray.push(firstLifeImage1);
+        this.lifesImageArray.push(secondLifeImage1);
+
+        this.add.image(23, 10, 'lifebar', 2).setDepth(1.5).setOrigin(0, 0);
+        this.add.image(68, 10, 'lifebar', 3).setDepth(1.5).setOrigin(0, 0);
+
+        this.add.image(0, 0, 'UIScoringScreen').setDepth(1).setOrigin(0, 0);
+        this.add.image(5, 8, 'carIcon').setDepth(1).setOrigin(0, 0);
     }
 
     showStartingScreen() {
@@ -362,7 +370,8 @@ export const config = {
         parent: 'phaser-example',
         autoCenter: Phaser.Scale.CENTER_BOTH,
         width: 800,
-        height: 600
+        height: 600,
+        backgroundColor: '#000000'
     },
     input: {
         activePointers: 2
