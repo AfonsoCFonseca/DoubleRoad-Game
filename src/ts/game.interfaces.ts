@@ -8,7 +8,8 @@ export enum GAME_STATE {
     RUNNING,
     PAUSE,
     GAME_OVER,
-    START
+    START,
+    TUTORIAL
 }
 
 // eslint-disable-next-line @typescript-eslint/naming-convention

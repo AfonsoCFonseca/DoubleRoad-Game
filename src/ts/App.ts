@@ -17,6 +17,7 @@ export class GameScene extends Phaser.Scene {
     private startUI: Phaser.GameObjects.Group;
     private menuGameOver: Phaser.GameObjects.Group;
     private startScreenImg: Phaser.GameObjects.Image;
+    private tutorial: Phaser.GameObjects.Image;
     private startScreenImgInitialY: number;
     private startScreenImgGoingUp: boolean = false;
     private startScreenImgFinallY: number = -8;
@@ -51,8 +52,10 @@ export class GameScene extends Phaser.Scene {
         this.load.image('GameOverScreen', 'assets/gameOverScreen.png');
         this.load.image('RetryButton', 'assets/RetryButton.png');
         this.load.image('StartScreenImg', 'assets/StartingScreen.png');
+        this.load.image('Tutorial', 'assets/tutorial.png');
         this.load.image('UIScoringScreen', 'assets/UIScoringScreen.png');
         this.load.image('carIcon', 'assets/carIcon.png');
+        this.load.image('PauseButton', 'assets/pauseButton.png');
         
         this.load.spritesheet('cars_sheet', 'assets/cars_sheet.png', {
             frameWidth: gv.CAR.WIDTH,
@@ -93,7 +96,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     startGame() {
-        this.startUI.clear(true, true);
+        this.tutorial.destroy();
         this.state = GAME_STATE.RUNNING;
         this.currentSpeed = gv.INITIAL_SPEED;
         this.currentGap = gv.INITIAL_GAP;
@@ -139,30 +142,26 @@ export class GameScene extends Phaser.Scene {
     }
 
     keys() {
-        window.addEventListener('keydown', () => {
-            if (this.state === GAME_STATE.START) {
-                //this.startGame();
-            } else {
-                if (this.moveKeys.left.isDown) {
-                    this.changeTrack('left');
-                }
-                if (this.moveKeys.right.isDown) {
-                    this.changeTrack('right');
-                }
-            }
-        }, false);
-
         window.addEventListener('keyup', () => {
             if (this.state === GAME_STATE.START) {
-                this.startGame();
+                this.showTutorial();
             }
         }, false);
 
         scene.input.on('pointerup', () => {
             if (this.state === GAME_STATE.START) {
-                this.startGame();
+                this.showTutorial();
             }
         });
+
+        window.addEventListener('keydown', () => {
+            if (this.moveKeys.left.isDown) {
+                this.changeTrack('left');
+            }
+            if (this.moveKeys.right.isDown) {
+                this.changeTrack('right');
+            }
+        }, false);
 
         if (this.input.pointer1.isDown || this.input.pointer2.isDown) {
             let xPointer1; 
@@ -292,6 +291,8 @@ export class GameScene extends Phaser.Scene {
 
         this.add.image(0, 0, 'UIScoringScreen').setDepth(1).setOrigin(0, 0);
         this.add.image(5, 8, 'carIcon').setDepth(1).setOrigin(0, 0);
+
+        this.add.image(725, 25, 'PauseButton').setDepth(1).setOrigin(0, 0);
     }
 
     showStartingScreen() {
@@ -312,6 +313,17 @@ export class GameScene extends Phaser.Scene {
         this.startUI.add(this.startScreenImg);
 
         this.movementTitleScreen();
+    }
+
+    showTutorial() {
+        this.state = GAME_STATE.TUTORIAL;
+        this.startUI.clear(true, true);
+        const imageHeight = 246;
+        const yPosition = gv.CANVAS.HEIGHT / 2 - imageHeight / 2;
+        this.tutorial = this.add.image(0, yPosition, 'Tutorial').setDepth(1).setOrigin(0, 0);
+        setTimeout(() => {
+            this.startGame();
+        }, 2000);
     }
 
     movementTitleScreen() {
