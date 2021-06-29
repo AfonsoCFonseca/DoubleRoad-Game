@@ -36,8 +36,8 @@ var LeftCar = /** @class */ (function (_super) {
             x: _this.pos2,
             y: gv.CAR.Y_POSITION
         };
-        config = __assign(__assign({}, config), pos);
-        _this = _super.call(this, config) || this;
+        var carConfig = __assign(__assign({}, config), pos);
+        _this = _super.call(this, carConfig) || this;
         return _this;
     }
     LeftCar.prototype.move = function () {
@@ -50,5 +50,5 @@ var LeftCar = /** @class */ (function (_super) {
         return [this.pos1, this.pos2];
     };
     return LeftCar;
-}(Player_1.Player));
-exports.LeftCar = LeftCar;
+}(Player_1.default));
+exports.default = LeftCar;

@@ -7,15 +7,13 @@ exports.CANVAS = {
     HEIGHT: null
 };
 exports.BACKGROUND = {
-    // WIDTH: 1560,
-    // HEIGHT: 1680,
-    WIDTH: 800,
-    HEIGHT: 600,
+    WIDTH: 1080,
+    HEIGHT: 1920
 };
 exports.ROAD = {
     WIDTH: 237,
     HEIGHT: 600,
-    GAP_MIDDLE: 30,
+    GAP_MIDDLE: 30
 };
 exports.CAR = {
     WIDTH: 60,

@@ -48,7 +48,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     preload() {
-        this.load.image('background_overlay', 'assets/background_overlay1.png');
+        this.load.image('background_overlay', 'assets/background_overlay2.png');
         this.load.image('GameOverScreen', 'assets/gameOverScreen.png');
         this.load.image('RetryButton', 'assets/RetryButton.png');
         this.load.image('StartScreenImg', 'assets/StartingScreen.png');
@@ -72,7 +72,7 @@ export class GameScene extends Phaser.Scene {
             frameHeight: 22
         });
 
-        this.load.spritesheet('carMov', 'assets/car1_anim_mov.png', {
+        this.load.spritesheet('carMov', 'assets/car1_anim_mov1.png', {
             frameWidth: gv.CAR.WIDTH,
             frameHeight: gv.CAR.HEIGHT
         });
@@ -185,7 +185,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     changeTrack(side: SIDE) {
-        const currentCar = side === 'left' ? this.leftCar : this.rightCar
+        const currentCar = side === 'left' ? this.leftCar : this.rightCar;
         if (currentCar.movementCooldownRdy) {
             this.time.delayedCall(gv.KEY_PRESSED_TIMER, () => {
                 currentCar.movementCooldownRdy = true;
@@ -292,19 +292,18 @@ export class GameScene extends Phaser.Scene {
         this.add.image(0, 0, 'UIScoringScreen').setDepth(1).setOrigin(0, 0);
         this.add.image(5, 8, 'carIcon').setDepth(1).setOrigin(0, 0);
 
-        this.add.image(725, 25, 'PauseButton').setDepth(1).setOrigin(0, 0);
+        this.add.image(960, 50, 'PauseButton').setDepth(1).setOrigin(0, 0);
     }
 
     showStartingScreen() {
-        const startingScreenImgWidth = 500;
-        const startingScreenImgHeight = 400;
+        const startingScreenImgWidth = 920;
         const startingScreenX = gv.BACKGROUND.WIDTH / 2 - startingScreenImgWidth / 2;
-        const startingScreenY = gv.BACKGROUND.WIDTH / 2 - (startingScreenImgHeight - 100);
+        const startingScreenY = gv.BACKGROUND.WIDTH / 2 - 200;
         this.startScreenImgInitialY = startingScreenY;
         this.startScreenImg = this.add.image(startingScreenX, startingScreenY, 'StartScreenImg').setDepth(1).setOrigin(0, 0);
 
         const startGameText = this.add.text(gv.BACKGROUND.WIDTH / 2, (gv.CANVAS.HEIGHT / 2) + 80, 'start game', {
-            font: '30px Geneva',
+            font: '60px Geneva',
             align: 'center' // the alignment of the text is independent of the bounds, try changing to 'center' or 'right'
         }).setDepth(1.1);
 
@@ -336,8 +335,8 @@ export class GameScene extends Phaser.Scene {
 
     gameOver() {
         this.state = GAME_STATE.GAME_OVER;
-        const backgroundGameOverWidth = 300;
-        const backgroundGameOverHeight = 400;
+        const backgroundGameOverWidth = 600;
+        const backgroundGameOverHeight = 800;
         const backgroundGamoOverX = (gv.CANVAS.WIDTH / 2) - backgroundGameOverWidth / 2;
         const backgroundGamoOverY = (gv.CANVAS.HEIGHT / 2) - backgroundGameOverHeight / 2;
 
@@ -345,23 +344,23 @@ export class GameScene extends Phaser.Scene {
 
         const gameOverScreen = this.add.image(backgroundGamoOverX, backgroundGamoOverY, 'GameOverScreen').setDepth(1).setOrigin(0, 0);
 
-        const scoretext1 = this.add.text(gv.BACKGROUND.WIDTH / 2, backgroundGamoOverY + 115, `${this.score}`, {
-            font: '40px Geneva',
+        const scoretext1 = this.add.text(gv.BACKGROUND.WIDTH / 2, backgroundGamoOverY + 250, `${this.score}`, {
+            font: '50px Geneva',
             align: 'center' // the alignment of the text is independent of the bounds, try changing to 'center' or 'right'
         }).setDepth(1.1);
 
         scoretext1.x -= scoretext1.width / 2;
 
-        const highScoretext1 = this.add.text(gv.BACKGROUND.WIDTH / 2, backgroundGamoOverY + 200, `${this.highScore}`, {
-            font: '35px Geneva',
+        const highScoretext1 = this.add.text(gv.BACKGROUND.WIDTH / 2, backgroundGamoOverY + 420, `${this.highScore}`, {
+            font: '50px Geneva',
             align: 'center' // the alignment of the text is independent of the bounds, try changing to 'center' or 'right'
         }).setDepth(1.1);
 
         highScoretext1.x -= highScoretext1.width / 2;
 
-        const buttonWidth = 206;
+        const buttonWidth = 412;
         const calcX = (backgroundGameOverWidth - buttonWidth) / 2;
-        const btnRetry = this.add.image(backgroundGamoOverX + calcX, backgroundGamoOverY + 270, 'RetryButton').setOrigin(0, 0).setDepth(1.1);
+        const btnRetry = this.add.image(backgroundGamoOverX + calcX, backgroundGamoOverY + 540, 'RetryButton').setOrigin(0, 0).setDepth(1.1);
         btnRetry.setInteractive({ useHandCursor: true });
         btnRetry.setInteractive({ useHandCursor: true });
         btnRetry.on('pointerup', () => this.resetGame());
@@ -381,8 +380,8 @@ export const config = {
         mode: Phaser.Scale.FIT,
         parent: 'phaser-example',
         autoCenter: Phaser.Scale.CENTER_BOTH,
-        width: 800,
-        height: 600,
+        width: 1080,
+        height: 1920,
         backgroundColor: '#000000'
     },
     input: {

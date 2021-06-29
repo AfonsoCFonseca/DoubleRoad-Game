@@ -20,69 +20,90 @@ var RightCar_1 = require("./Player/RightCar");
 var LeftCar_1 = require("./Player/LeftCar");
 var EnemySpawner_1 = require("./Enemies/EnemySpawner");
 var game_interfaces_1 = require("./game.interfaces");
+var utils_1 = require("./Utils/utils");
 var GameScene = /** @class */ (function (_super) {
     __extends(GameScene, _super);
     function GameScene() {
         var _this = _super.call(this, {}) || this;
+        _this.startScreenImgGoingUp = false;
+        _this.startScreenImgFinallY = -8;
         _this.currentLevel = 1;
         _this.inbetweenSpeed = 0.2;
         _this.inbetweenGap = 30;
         _this.score = 0;
-        _this.highScore = 0;
+        _this.highScore = parseInt(utils_1.Utils.getCookie('highscore'), 10) || 0;
         _this.lifesImageArray = [];
         _this.carCrash = _this.carCrash.bind(_this);
         return _this;
     }
     GameScene.prototype.preload = function () {
-        this.load.image('background', 'assets/background1.jpg');
-        this.load.image('background_overlay', 'assets/background_overlay1.png');
-        this.load.image('normal_car', 'assets/normal_car_1.png');
-        this.load.image('switcher_car', 'assets/normal_car_2.png');
+        this.load.image('background_overlay', 'assets/background_overlay2.png');
         this.load.image('GameOverScreen', 'assets/gameOverScreen.png');
         this.load.image('RetryButton', 'assets/RetryButton.png');
-        this.load.spritesheet('lifes', 'assets/lifes.png', {
-            frameWidth: gv.CAR.WIDTH / 2,
-            frameHeight: gv.CAR.HEIGHT / 2
+        this.load.image('StartScreenImg', 'assets/StartingScreen.png');
+        this.load.image('Tutorial', 'assets/tutorial.png');
+        this.load.image('UIScoringScreen', 'assets/UIScoringScreen.png');
+        this.load.image('carIcon', 'assets/carIcon.png');
+        this.load.image('PauseButton', 'assets/pauseButton.png');
+        this.load.spritesheet('cars_sheet', 'assets/cars_sheet.png', {
+            frameWidth: gv.CAR.WIDTH,
+            frameHeight: gv.CAR.HEIGHT
+        });
+        this.load.spritesheet('explosionSS', 'assets/explosion.png', {
+            frameWidth: gv.CAR.WIDTH,
+            frameHeight: gv.CAR.HEIGHT
+        });
+        this.load.spritesheet('lifebar', 'assets/lifebar.png', {
+            frameWidth: 45,
+            frameHeight: 22
         });
         this.load.spritesheet('carMov', 'assets/car1_anim_mov.png', {
             frameWidth: gv.CAR.WIDTH,
             frameHeight: gv.CAR.HEIGHT
         });
         this.menuGameOver = this.add.group();
-        this.loadPositionOnScreen();
+        GameScene.loadPositionOnScreen();
         this.playerCarsGroup = this.add.group();
         this.enemiesGroup = this.add.group();
+        this.startUI = this.add.group();
         exports.scene = this;
     };
     GameScene.prototype.create = function () {
+        this.state = game_interfaces_1.GAME_STATE.START;
+        this.setKeys();
+        this.showStartingScreen();
+        exports.map = new Map_1.Map();
+    };
+    GameScene.prototype.startGame = function () {
+        this.tutorial.destroy();
         this.state = game_interfaces_1.GAME_STATE.RUNNING;
         this.currentSpeed = gv.INITIAL_SPEED;
         this.currentGap = gv.INITIAL_GAP;
         this.lifes = gv.INITIAL_LIFES;
-        exports.map = new Map_1.Map();
         this.createPlayer();
         exports.spawner = new EnemySpawner_1.EnemySpawner();
-        this.setKeys();
         this.levelUpTimer();
+        this.score = GameScene.makeScoreMath(this.currentLevel);
         this.showUI();
         this.physics.add.collider(this.enemiesGroup, this.playerCarsGroup, this.carCrash);
         this.input.addPointer(3);
-        exports.scene.scale.lockOrientation('landscape');
     };
     GameScene.prototype.update = function () {
-        this.events.emit('updateEnemy');
+        if (this.state === game_interfaces_1.GAME_STATE.RUNNING) {
+            exports.spawner.currentEnemies.forEach(function (enemy) { return enemy.update(); });
+            exports.map.move();
+        }
         this.keys();
-        exports.map.move();
     };
     GameScene.prototype.createPlayer = function () {
         var car = {
             spriteName: 'carIdleAnimation'
         };
-        this.rightCar = new RightCar_1.RightCar(car);
+        this.rightCar = new RightCar_1.default(car);
         car = {
             spriteName: 'carIdleAnimation'
         };
-        this.leftCar = new LeftCar_1.LeftCar(car);
+        this.leftCar = new LeftCar_1.default(car);
     };
     GameScene.prototype.setKeys = function () {
         this.input.keyboard.createCursorKeys();
@@ -93,6 +114,16 @@ var GameScene = /** @class */ (function (_super) {
     };
     GameScene.prototype.keys = function () {
         var _this = this;
+        window.addEventListener('keyup', function () {
+            if (_this.state === game_interfaces_1.GAME_STATE.START) {
+                _this.showTutorial();
+            }
+        }, false);
+        exports.scene.input.on('pointerup', function () {
+            if (_this.state === game_interfaces_1.GAME_STATE.START) {
+                _this.showTutorial();
+            }
+        });
         window.addEventListener('keydown', function () {
             if (_this.moveKeys.left.isDown) {
                 _this.changeTrack('left');
@@ -136,18 +167,18 @@ var GameScene = /** @class */ (function (_super) {
     };
     GameScene.prototype.levelUpTimer = function () {
         var _this = this;
-        if (this.state === game_interfaces_1.GAME_STATE.RUNNING) {
-            setTimeout(function () {
+        setTimeout(function () {
+            if (_this.state === game_interfaces_1.GAME_STATE.RUNNING) {
                 _this.levelUp();
                 _this.levelUpTimer();
-            }, gv.TIME_PER_LEVEL);
-        }
+            }
+        }, gv.TIME_PER_LEVEL);
     };
     GameScene.prototype.carCrash = function (enemy) {
-        enemy.destroy();
+        enemy.delete();
         this.lifes -= 1;
         if (this.lifes >= 0) {
-            this.lifesImageArray[this.lifes].setTexture('lifes', 1);
+            this.lifesImageArray[this.lifes].visible = false;
         }
         else {
             this.gameOver();
@@ -155,7 +186,8 @@ var GameScene = /** @class */ (function (_super) {
     };
     GameScene.prototype.levelUp = function () {
         this.currentLevel += 1;
-        this.currentLevelDraw.setText("level " + this.currentLevel);
+        this.score = GameScene.makeScoreMath(this.currentLevel);
+        this.currentLevelDraw.setText("Score:" + this.score);
         // eslint-disable-next-line default-case
         switch (this.currentLevel) {
             case 10:
@@ -174,52 +206,102 @@ var GameScene = /** @class */ (function (_super) {
             this.currentGap -= this.inbetweenGap;
         }
     };
+    GameScene.makeScoreMath = function (level) {
+        return level * 100;
+    };
     GameScene.prototype.resetGame = function () {
         var _this = this;
         this.currentLevel = 1;
         this.lifes = gv.INITIAL_LIFES;
         this.currentSpeed = gv.INITIAL_SPEED;
         this.currentGap = gv.INITIAL_GAP;
-        this.lifesImageArray.forEach(function (lifeImg, index) { return _this.lifesImageArray[index].setTexture('lifes', 0); });
+        this.lifesImageArray.forEach(function (lifeImg, index) { return _this.lifesImageArray[index].visible = true; });
         this.leftCar.setToInitialPosition();
         this.rightCar.setToInitialPosition();
         exports.map.setMapSpeed(gv.INITIAL_SPEED);
         exports.spawner.clearAllEnemies();
-        this.resetScore();
+        this.score = 0;
         this.menuGameOver.clear(true, true);
         this.state = game_interfaces_1.GAME_STATE.RUNNING;
         exports.spawner.createEnemy();
+        this.levelUpTimer();
+        this.currentLevelDraw.setText("Score:" + this.score);
     };
-    GameScene.prototype.resetScore = function () {
+    GameScene.prototype.checkHighScore = function () {
         if (this.score > this.highScore) {
             this.highScore = this.score;
+            utils_1.Utils.setCookie('highscore', this.highScore.toString(), 1);
         }
-        this.score = 0;
     };
     GameScene.prototype.showUI = function () {
-        this.currentLevelDraw = this.add.text(20, 15, "level " + this.currentLevel, {
-            fontSize: '30px'
+        this.currentLevelDraw = this.add.text(5, 45, "Score:" + this.score, {
+            fontSize: '16px'
         }).setDepth(1.1);
-        var firstLifeImage = this.add.image(20, 50, 'lifes', 0).setDepth(1).setOrigin(0, 0);
-        var secondLifeImage = this.add.image(60, 50, 'lifes', 0).setDepth(1).setOrigin(0, 0);
-        this.lifesImageArray.push(firstLifeImage);
-        this.lifesImageArray.push(secondLifeImage);
+        var firstLifeImage1 = this.add.image(23, 10, 'lifebar', 0).setDepth(2).setOrigin(0, 0);
+        var secondLifeImage1 = this.add.image(68, 10, 'lifebar', 1).setDepth(2).setOrigin(0, 0);
+        this.lifesImageArray.push(firstLifeImage1);
+        this.lifesImageArray.push(secondLifeImage1);
+        this.add.image(23, 10, 'lifebar', 2).setDepth(1.5).setOrigin(0, 0);
+        this.add.image(68, 10, 'lifebar', 3).setDepth(1.5).setOrigin(0, 0);
+        this.add.image(0, 0, 'UIScoringScreen').setDepth(1).setOrigin(0, 0);
+        this.add.image(5, 8, 'carIcon').setDepth(1).setOrigin(0, 0);
+        this.add.image(725, 25, 'PauseButton').setDepth(1).setOrigin(0, 0);
+    };
+    GameScene.prototype.showStartingScreen = function () {
+        var startingScreenImgWidth = 500;
+        var startingScreenImgHeight = 400;
+        var startingScreenX = gv.BACKGROUND.WIDTH / 2 - startingScreenImgWidth / 2;
+        var startingScreenY = gv.BACKGROUND.WIDTH / 2 - (startingScreenImgHeight - 100);
+        this.startScreenImgInitialY = startingScreenY;
+        this.startScreenImg = this.add.image(startingScreenX, startingScreenY, 'StartScreenImg').setDepth(1).setOrigin(0, 0);
+        var startGameText = this.add.text(gv.BACKGROUND.WIDTH / 2, (gv.CANVAS.HEIGHT / 2) + 80, 'start game', {
+            font: '30px Geneva',
+            align: 'center' // the alignment of the text is independent of the bounds, try changing to 'center' or 'right'
+        }).setDepth(1.1);
+        startGameText.x -= startGameText.width / 2;
+        this.startUI.add(startGameText);
+        this.startUI.add(this.startScreenImg);
+        this.movementTitleScreen();
+    };
+    GameScene.prototype.showTutorial = function () {
+        var _this = this;
+        this.state = game_interfaces_1.GAME_STATE.TUTORIAL;
+        this.startUI.clear(true, true);
+        var imageHeight = 246;
+        var yPosition = gv.CANVAS.HEIGHT / 2 - imageHeight / 2;
+        this.tutorial = this.add.image(0, yPosition, 'Tutorial').setDepth(1).setOrigin(0, 0);
+        setTimeout(function () {
+            _this.startGame();
+        }, 2000);
+    };
+    GameScene.prototype.movementTitleScreen = function () {
+        var _this = this;
+        utils_1.Utils.makeAnimation(this.startScreenImg, { x: this.startScreenImg.x, y: this.startScreenImgInitialY + this.startScreenImgFinallY }, 1000, function () {
+            _this.startScreenImgFinallY = _this.startScreenImgGoingUp ? -8 : 8;
+            _this.startScreenImgGoingUp = !_this.startScreenImgGoingUp;
+            _this.movementTitleScreen();
+        });
     };
     GameScene.prototype.gameOver = function () {
         var _this = this;
         this.state = game_interfaces_1.GAME_STATE.GAME_OVER;
         var backgroundGameOverWidth = 300;
         var backgroundGameOverHeight = 400;
-        var backgroundGamoOverX = (exports.game.canvas.width / 2) - backgroundGameOverWidth / 2;
-        var backgroundGamoOverY = (exports.game.canvas.height / 2) - backgroundGameOverHeight / 2;
+        var backgroundGamoOverX = (gv.CANVAS.WIDTH / 2) - backgroundGameOverWidth / 2;
+        var backgroundGamoOverY = (gv.CANVAS.HEIGHT / 2) - backgroundGameOverHeight / 2;
+        this.checkHighScore();
         var gameOverScreen = this.add.image(backgroundGamoOverX, backgroundGamoOverY, 'GameOverScreen').setDepth(1).setOrigin(0, 0);
-        var scoretext1 = this.add.text(backgroundGamoOverX + 170, backgroundGamoOverY + 135, '10', {
-            fontSize: '30px',
+        var scoretext1 = this.add.text(gv.BACKGROUND.WIDTH / 2, backgroundGamoOverY + 115, "" + this.score, {
+            font: '40px Geneva',
+            align: 'center' // the alignment of the text is independent of the bounds, try changing to 'center' or 'right'
         }).setDepth(1.1);
-        var highScoretext1 = this.add.text(backgroundGamoOverX + 170, backgroundGamoOverY + 190, '200', {
-            fontSize: '30px',
+        scoretext1.x -= scoretext1.width / 2;
+        var highScoretext1 = this.add.text(gv.BACKGROUND.WIDTH / 2, backgroundGamoOverY + 200, "" + this.highScore, {
+            font: '35px Geneva',
+            align: 'center' // the alignment of the text is independent of the bounds, try changing to 'center' or 'right'
         }).setDepth(1.1);
-        var buttonWidth = 225;
+        highScoretext1.x -= highScoretext1.width / 2;
+        var buttonWidth = 206;
         var calcX = (backgroundGameOverWidth - buttonWidth) / 2;
         var btnRetry = this.add.image(backgroundGamoOverX + calcX, backgroundGamoOverY + 270, 'RetryButton').setOrigin(0, 0).setDepth(1.1);
         btnRetry.setInteractive({ useHandCursor: true });
@@ -227,7 +309,7 @@ var GameScene = /** @class */ (function (_super) {
         btnRetry.on('pointerup', function () { return _this.resetGame(); });
         this.menuGameOver.addMultiple([gameOverScreen, highScoretext1, scoretext1, btnRetry]);
     };
-    GameScene.prototype.loadPositionOnScreen = function () {
+    GameScene.loadPositionOnScreen = function () {
         gv.CANVAS.WIDTH = exports.game.canvas.width;
         gv.CANVAS.HEIGHT = exports.game.canvas.height;
     };
@@ -240,18 +322,20 @@ exports.config = {
         mode: Phaser.Scale.FIT,
         parent: 'phaser-example',
         autoCenter: Phaser.Scale.CENTER_BOTH,
-        width: 800,
-        height: 600
+        orientation: Phaser.Scale.Orientation.PORTRAIT,
+        width: 1080,
+        height: 1920,
+        backgroundColor: '#000000'
     },
     input: {
-        activePointers: 2,
+        activePointers: 2
     },
     physics: {
-        default: "arcade",
+        default: 'arcade',
         arcade: {
         //debug: true,
         }
     },
-    scene: GameScene,
+    scene: GameScene
 };
 exports.game = new Phaser.Game(exports.config);

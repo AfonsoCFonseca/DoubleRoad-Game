@@ -50,5 +50,5 @@ var RightCar = /** @class */ (function (_super) {
         return [this.pos1, this.pos2];
     };
     return RightCar;
-}(Player_1.Player));
-exports.RightCar = RightCar;
+}(Player_1.default));
+exports.default = RightCar;

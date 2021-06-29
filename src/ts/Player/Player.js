@@ -29,7 +29,6 @@ var Player = /** @class */ (function (_super) {
         App_1.scene.physics.world.enable(_this);
         App_1.scene.add.existing(_this);
         App_1.scene.playerCarsGroup.add(_this);
-        _this.side = utils_1.Utils.getSide(_this.x);
         _this.nextX = _this.x + 5;
         App_1.scene.anims.create({
             key: 'carIdleAnimation',
@@ -39,15 +38,15 @@ var Player = /** @class */ (function (_super) {
         });
         App_1.scene.anims.create({
             key: 'carLeftAnimation',
-            frames: App_1.scene.anims.generateFrameNumbers('carMov', { start: 5, end: 10 }),
+            frames: App_1.scene.anims.generateFrameNumbers('carMov', { start: 5, end: 9 }),
             duration: 150,
             repeat: 0
         });
         App_1.scene.anims.create({
             key: 'carRightAnimation',
-            frames: App_1.scene.anims.generateFrameNumbers('carMov', { start: 10, end: 16 }),
+            frames: App_1.scene.anims.generateFrameNumbers('carMov', { start: 10, end: 14 }),
             duration: 150,
-            repeat: 0,
+            repeat: 0
         });
         _this.play('carIdleAnimation');
         return _this;
@@ -55,14 +54,14 @@ var Player = /** @class */ (function (_super) {
     Player.prototype.move = function (pos1, pos2) {
         var _this = this;
         this.state = game_interfaces_1.PLAYER_STATE.MOVING;
-        var x = this.currentPos == 'pos1' ? pos2 : pos1;
-        var animationMovement = this.currentPos == 'pos1' ? 'carLeftAnimation' : 'carRightAnimation';
+        var x = this.currentPos === 'pos1' ? pos2 : pos1;
+        var animationMovement = this.currentPos === 'pos1' ? 'carLeftAnimation' : 'carRightAnimation';
         this.play(animationMovement);
         this.once('animationcomplete', function () {
-            _this.play("carIdleAnimation");
+            _this.play('carIdleAnimation');
         });
         utils_1.Utils.makeAnimation(this, { x: x, y: this.y }, 150, function () {
-            _this.currentPos = _this.currentPos == 'pos1' ? 'pos2' : 'pos1';
+            _this.currentPos = _this.currentPos === 'pos1' ? 'pos2' : 'pos1';
             _this.state = game_interfaces_1.PLAYER_STATE.IDLE;
             _this.nextX = _this.x;
         });
@@ -74,4 +73,4 @@ var Player = /** @class */ (function (_super) {
     };
     return Player;
 }(Phaser.GameObjects.Sprite));
-exports.Player = Player;
+exports.default = Player;

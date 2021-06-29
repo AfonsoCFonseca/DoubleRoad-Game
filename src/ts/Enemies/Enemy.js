@@ -13,6 +13,8 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
+// eslint-disable-next-line @typescript-eslint/max-len
+// eslint-disable-next-line max-classes-per-file
 var App_1 = require("../App");
 var gv = require("../Utils/gameValues");
 var utils_1 = require("../Utils/utils");
@@ -20,19 +22,16 @@ var utils_1 = require("../Utils/utils");
 var Enemy = /** @class */ (function (_super) {
     __extends(Enemy, _super);
     function Enemy(config) {
-        var _this = _super.call(this, App_1.scene, config.x, config.y, config.imageName) || this;
+        var _this = _super.call(this, App_1.scene, config.x, config.y, config.imageName, config.carFrame) || this;
         _this.currentSpeed = gv.INITIAL_SPEED + 1;
         App_1.scene.physics.add.existing(_this);
         App_1.scene.physics.world.enable(_this);
         App_1.scene.add.existing(_this).setDepth(1).setOrigin(0, 0);
         App_1.scene.physics.world.enable(_this);
         App_1.scene.add.existing(_this);
-        _this.update = _this.update.bind(_this);
         _this.ID = utils_1.Utils.generateId();
         _this.currentSpeed = config.currentSpeed;
-        _this.velocity = _this.currentSpeed * gv.FRAMES_PER_SECOND;
         App_1.scene.enemiesGroup.add(_this);
-        App_1.scene.events.on('updateEnemy', _this.update);
         return _this;
     }
     Enemy.prototype.update = function () {
@@ -41,14 +40,33 @@ var Enemy = /** @class */ (function (_super) {
             this.delete();
         }
     };
-    Enemy.prototype.setCurrentSpeed = function (newSpeed) {
-        this.currentSpeed = gv.INITIAL_SPEED + newSpeed;
-    };
     Enemy.prototype.delete = function () {
+        new Explosion({ x: this.x, y: this.y });
         App_1.spawner.deleteEnemy(this.ID);
-        App_1.scene.events.off('updateEnemy', this.update);
         this.destroy();
     };
     return Enemy;
 }(Phaser.GameObjects.Sprite));
 exports.Enemy = Enemy;
+var Explosion = /** @class */ (function (_super) {
+    __extends(Explosion, _super);
+    function Explosion(config) {
+        var _this = _super.call(this, App_1.scene, config.x, config.y + 25, 'explosionSS') || this;
+        App_1.scene.anims.create({
+            key: 'explosion',
+            frames: _this.anims.generateFrameNumbers('explosionSS', { start: 0, end: 5 }),
+            duration: 800,
+            repeat: false
+        });
+        _this.once('animationcomplete', function () { return _this.destroy(); });
+        App_1.scene.physics.add.existing(_this);
+        App_1.scene.physics.world.enable(_this);
+        App_1.scene.add.existing(_this).setDepth(1).setOrigin(0, 0);
+        App_1.scene.physics.world.enable(_this);
+        App_1.scene.add.existing(_this);
+        _this.play('explosion');
+        return _this;
+    }
+    return Explosion;
+}(Phaser.GameObjects.Sprite));
+exports.Explosion = Explosion;

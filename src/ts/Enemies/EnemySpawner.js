@@ -13,19 +13,15 @@ var EnemySpawner = /** @class */ (function () {
     EnemySpawner.prototype.createEnemy = function () {
         var _this = this;
         var rndPos = App_1.scene.leftCar.getBothPos()[Math.floor(utils_1.Utils.rndNumber(0, 2))];
-        var currentLeftCar = this.getEnemy(rndPos);
+        var currentLeftCar = new NormalEnemy_1.default({ x: rndPos, y: -200 });
         this.currentEnemies.push(currentLeftCar);
         rndPos = App_1.scene.rightCar.getBothPos()[Math.floor(utils_1.Utils.rndNumber(0, 2))];
-        var currentRightCar = this.getEnemy(rndPos);
+        var currentRightCar = new NormalEnemy_1.default({ x: rndPos, y: -200 });
         this.currentEnemies.push(currentRightCar);
         setTimeout(function () {
             if (App_1.scene.state === game_interfaces_1.GAME_STATE.RUNNING)
                 _this.createEnemy();
         }, App_1.scene.getGap());
-    };
-    EnemySpawner.prototype.getEnemy = function (xPos) {
-        console.log(App_1.scene.currentLevel);
-        return new NormalEnemy_1.NormalEnemy({ x: xPos, y: -200 });
     };
     EnemySpawner.prototype.clearAllEnemies = function () {
         this.currentEnemies.forEach(function (car) {
