@@ -31,6 +31,6 @@ export const POSITION = {
 };
 
 export const TIME_PER_LEVEL = 1000;
-export const INITIAL_GAP = 1600;
-export const INITIAL_SPEED = 2;
+export const INITIAL_GAP = 1400;
+export const INITIAL_SPEED = 4;
 export const INITIAL_LIFES = 2;

@@ -31,7 +31,7 @@ export class GameScene extends Phaser.Scene {
 
     private currentLevel = 1;
     private currentSpeed: number;
-    private inbetweenSpeed = 0.2;
+    private inbetweenSpeed = 0.4;
     private currentGap: number;
     private inbetweenGap = 30;
     private score = 0;
@@ -68,8 +68,8 @@ export class GameScene extends Phaser.Scene {
         });
 
         this.load.spritesheet('lifebar', 'assets/lifebar.png', {
-            frameWidth: 45,
-            frameHeight: 22
+            frameWidth: 90,
+            frameHeight: 44
         });
 
         this.load.spritesheet('carMov', 'assets/car1_anim_mov1.png', {
@@ -97,7 +97,6 @@ export class GameScene extends Phaser.Scene {
 
     startGame() {
         this.tutorial.destroy();
-        this.state = GAME_STATE.RUNNING;
         this.currentSpeed = gv.INITIAL_SPEED;
         this.currentGap = gv.INITIAL_GAP;
         this.lifes = gv.INITIAL_LIFES;
@@ -111,6 +110,7 @@ export class GameScene extends Phaser.Scene {
         this.physics.add.collider(this.enemiesGroup, this.playerCarsGroup, this.carCrash);
 
         this.input.addPointer(3);
+        this.state = GAME_STATE.RUNNING;
     }
 
     update() {
@@ -148,18 +148,14 @@ export class GameScene extends Phaser.Scene {
             }
         }, false);
 
-        scene.input.on('pointerup', () => {
-            if (this.state === GAME_STATE.START) {
-                this.showTutorial();
-            }
-        });
-
         window.addEventListener('keydown', () => {
-            if (this.moveKeys.left.isDown) {
-                this.changeTrack('left');
-            }
-            if (this.moveKeys.right.isDown) {
-                this.changeTrack('right');
+            if (this.state === GAME_STATE.RUNNING) {
+                if (this.moveKeys.left.isDown) {
+                    this.changeTrack('left');
+                }
+                if (this.moveKeys.right.isDown) {
+                    this.changeTrack('right');
+                }
             }
         }, false);
 
@@ -167,19 +163,23 @@ export class GameScene extends Phaser.Scene {
             let xPointer1; 
             let xPointer2;
 
-            if (this.input.pointer1.isDown) {
-                xPointer1 = this.input.pointer1.x;
-            }
-            if (this.input.pointer2.isDown) {
-                xPointer2 = this.input.pointer2.x;
-            }
-
-            if (xPointer1 < gv.CANVAS.WIDTH / 2 || xPointer2 < gv.CANVAS.WIDTH / 2) {
-                this.changeTrack('left');
-            }
-
-            if (xPointer1 >= gv.CANVAS.WIDTH / 2 || xPointer2 >= gv.CANVAS.WIDTH / 2) {
-                this.changeTrack('right');
+            if (this.state === GAME_STATE.START) {
+                this.showTutorial();
+            } else if (this.state === GAME_STATE.RUNNING) {
+                if (this.input.pointer1.isDown) {
+                    xPointer1 = this.input.pointer1.x;
+                }
+                if (this.input.pointer2.isDown) {
+                    xPointer2 = this.input.pointer2.x;
+                }
+    
+                if (xPointer1 < gv.CANVAS.WIDTH / 2 || xPointer2 < gv.CANVAS.WIDTH / 2) {
+                    this.changeTrack('left');
+                }
+    
+                if (xPointer1 >= gv.CANVAS.WIDTH / 2 || xPointer2 >= gv.CANVAS.WIDTH / 2) {
+                    this.changeTrack('right');
+                }
             }
         }
     }
@@ -234,8 +234,7 @@ export class GameScene extends Phaser.Scene {
                 this.inbetweenGap = 30;
                 break;
             case 20:
-                this.inbetweenGap = 15;
-                this.inbetweenSpeed = 0.1;
+                this.inbetweenGap = 20;
                 break;
             case 30:
                 this.inbetweenGap = 10;
@@ -277,20 +276,25 @@ export class GameScene extends Phaser.Scene {
     }
 
     showUI() {
-        this.currentLevelDraw = this.add.text(5, 45, `Score:${this.score}`, {
-            fontSize: '16px'
-        }).setDepth(1.1);
+        const uiScoringBackgroundHeight = 81;
 
-        const firstLifeImage1 = this.add.image(23, 10, 'lifebar', 0).setDepth(2).setOrigin(0, 0);
-        const secondLifeImage1 = this.add.image(68, 10, 'lifebar', 1).setDepth(2).setOrigin(0, 0);
+        this.currentLevelDraw = this.add.text(10, uiScoringBackgroundHeight + 60, `Score:${this.score}`, {
+            font: 'bold 33px Geneva'
+        }).setDepth(1.2);
+
+        const firstLifeImage1 = this.add.image(33, 50, 'lifebar', 0).setDepth(2).setOrigin(0, 0);
+        const secondLifeImage1 = this.add.image(123, 50, 'lifebar', 1).setDepth(2).setOrigin(0, 0);
         this.lifesImageArray.push(firstLifeImage1);
         this.lifesImageArray.push(secondLifeImage1);
 
-        this.add.image(23, 10, 'lifebar', 2).setDepth(1.5).setOrigin(0, 0);
-        this.add.image(68, 10, 'lifebar', 3).setDepth(1.5).setOrigin(0, 0);
+        this.add.image(33, 50, 'lifebar', 2).setDepth(1.5).setOrigin(0, 0);
+        this.add.image(123, 50, 'lifebar', 3).setDepth(1.5).setOrigin(0, 0);
 
-        this.add.image(0, 0, 'UIScoringScreen').setDepth(1).setOrigin(0, 0);
-        this.add.image(5, 8, 'carIcon').setDepth(1).setOrigin(0, 0);
+        this.add.image(0, 30, 'UIScoringScreen').setDepth(1.1).setOrigin(0, 0); //Bigger upper Score Board
+        this.add.image(0, uiScoringBackgroundHeight + 40, 'UIScoringScreen').setDepth(1.1).setOrigin(0, 0); //Bigger upper Score Board
+        //this.add.image(-50, 30 + uiScoringBackgroundHeight + 10, 'UIScoringScreen').setDepth(1.1).setOrigin(0, 0); //Lower Score Board
+
+        this.add.image(5, 50, 'carIcon').setDepth(2).setOrigin(0, 0);
 
         this.add.image(960, 50, 'PauseButton').setDepth(1).setOrigin(0, 0);
     }
@@ -302,7 +306,7 @@ export class GameScene extends Phaser.Scene {
         this.startScreenImgInitialY = startingScreenY;
         this.startScreenImg = this.add.image(startingScreenX, startingScreenY, 'StartScreenImg').setDepth(1).setOrigin(0, 0);
 
-        const startGameText = this.add.text(gv.BACKGROUND.WIDTH / 2, (gv.CANVAS.HEIGHT / 2) + 80, 'start game', {
+        const startGameText = this.add.text(gv.BACKGROUND.WIDTH / 2, (gv.CANVAS.HEIGHT / 2) + 480, 'start game', {
             font: '60px Geneva',
             align: 'center' // the alignment of the text is independent of the bounds, try changing to 'center' or 'right'
         }).setDepth(1.1);
@@ -320,6 +324,7 @@ export class GameScene extends Phaser.Scene {
         const imageHeight = 246;
         const yPosition = gv.CANVAS.HEIGHT / 2 - imageHeight / 2;
         this.tutorial = this.add.image(0, yPosition, 'Tutorial').setDepth(1).setOrigin(0, 0);
+
         setTimeout(() => {
             this.startGame();
         }, 2000);

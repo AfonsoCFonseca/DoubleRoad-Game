@@ -8,7 +8,7 @@ export default class NormalEnemy extends Enemy {
         const normalCarConfig = { 
             ...config,
             imageName: 'cars_sheet',
-            carFrame: Math.floor(Utils.rndNumber(1, 5)),
+            carFrame: Math.floor(Utils.rndNumber(1, 7)),
             currentSpeed: gv.INITIAL_SPEED + scene.getSpeed()
         };
         super(normalCarConfig);

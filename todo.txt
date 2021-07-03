@@ -1,2 +1,1 @@
-- remove double collider
-- put all cars in the same sheet
+- Pause menu
