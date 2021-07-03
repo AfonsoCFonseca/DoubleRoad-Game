@@ -52,5 +52,6 @@ So, I changed the Y axis speed of the enemy and road to look like the player was
    <img width="186" height="235" src='https://github.com/AfonsoCFonseca/DoubleRoad-Game/blob/master/screenshots/30_05.png' >
    <img width="186" height="235" src='https://github.com/AfonsoCFonseca/DoubleRoad-Game/blob/master/screenshots/30_05_part2.png' >
    <img width="186" height="235" src='https://github.com/AfonsoCFonseca/DoubleRoad-Game/blob/master/screenshots/20_06.png' >
+   <img width="186" height="235" src='https://github.com/AfonsoCFonseca/DoubleRoad-Game/blob/master/screenshots/03_07.png' >
 
  </p>
