@@ -1,23 +1,15 @@
 {
-  "name": "frogger-game",
-  "version": "1.0.0",
-  "description": "Classic Frogger game using javascript and typescript",
+  "name": "Double-Road",
+  "version": "1.1.0",
+  "description": "Original game using phaser with Typescript a no-sql DB Firebase",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
     "build": "webpack",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/AfonsoCFonseca/Frogger-Game.git"
-  },
   "author": "",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/AfonsoCFonseca/Frogger-Game/issues"
-  },
-  "homepage": "https://github.com/AfonsoCFonseca/Frogger-Game#readme",
   "dependencies": {
     "body-parser": "^1.19.0",
     "dotenv": "^10.0.0",
