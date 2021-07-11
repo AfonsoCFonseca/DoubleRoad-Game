@@ -3,6 +3,7 @@ import { Map } from './Map/Map';
 import * as gv from './Utils/gameValues';
 import RightCar from './Player/RightCar';
 import LeftCar from './Player/LeftCar';
+import LeaderBoard from './LeaderBoard/LeaderBoard';
 import { EnemySpawner } from './Enemies/EnemySpawner';
 import { GAME_STATE, SIDE } from './game.interfaces';
 import { Utils } from './Utils/utils';
@@ -24,18 +25,20 @@ export class GameScene extends Phaser.Scene {
 
     public leftCar: LeftCar;
     public rightCar: RightCar;
+    public leaderBoard: LeaderBoard;
 
     public state: GAME_STATE;
 
     private moveKeys;
 
+    private playerKey: string;
     private currentLevel = 1;
     private currentSpeed: number;
     private inbetweenSpeed = 0.4;
     private currentGap: number;
     private inbetweenGap = 30;
     private score = 0;
-    private highScore = parseInt(Utils.getCookie('highscore'), 10) || 0;
+    private highScore = 0;
     private lifesImageArray = [];
     private lifes: number;
 
@@ -50,12 +53,15 @@ export class GameScene extends Phaser.Scene {
     preload() {
         this.load.image('background_overlay', 'assets/background_overlay2.png');
         this.load.image('GameOverScreen', 'assets/gameOverScreen.png');
+        this.load.image('UserBoard', 'assets/UserBoard.png');
+        this.load.image('UserBoardPlayer', 'assets/UserBoardPlayer.png');
         this.load.image('RetryButton', 'assets/RetryButton.png');
         this.load.image('StartScreenImg', 'assets/StartingScreen.png');
         this.load.image('Tutorial', 'assets/tutorial.png');
         this.load.image('UIScoringScreen', 'assets/UIScoringScreen.png');
         this.load.image('carIcon', 'assets/carIcon.png');
         this.load.image('PauseButton', 'assets/pauseButton.png');
+        this.load.image('BtnEdit', 'assets/btnEdit.png');
         
         this.load.spritesheet('cars_sheet', 'assets/cars_sheet.png', {
             frameWidth: gv.CAR.WIDTH,
@@ -88,10 +94,12 @@ export class GameScene extends Phaser.Scene {
         scene = this;
     }
 
-    create() {
+    async create() {
         this.state = GAME_STATE.START;
         this.setKeys();
         this.showStartingScreen();
+        this.leaderBoard = new LeaderBoard();
+        await this.getPlayer();
         map = new Map();
     }
 
@@ -268,10 +276,17 @@ export class GameScene extends Phaser.Scene {
         this.currentLevelDraw.setText(`Score:${this.score}`);
     }
 
-    checkHighScore() {
-        if (this.score > this.highScore) {
-            this.highScore = this.score;
-            Utils.setCookie('highscore', this.highScore.toString(), 1);
+    async getPlayer() {
+        this.playerKey = Utils.getCookie('playerKey') || Utils.generateId();
+        Utils.setCookie('playerKey', this.playerKey, 1000);
+        const player = await this.leaderBoard.getPlayer(this.playerKey);
+        this.highScore = player.highScore;
+        console.log(player);
+    }
+
+    async postHighScore() {
+        if (Number(this.score) > Number(this.highScore)) {
+            await this.leaderBoard.postPlayerInLeaderBoard(this.highScore, this.playerKey);
         }
     }
 
@@ -338,41 +353,115 @@ export class GameScene extends Phaser.Scene {
         });
     }
 
-    gameOver() {
+    async gameOver() {
         this.state = GAME_STATE.GAME_OVER;
-        const backgroundGameOverWidth = 600;
-        const backgroundGameOverHeight = 800;
+        const backgroundGameOverWidth = 850;
+        const backgroundGameOverHeight = 1300;
         const backgroundGamoOverX = (gv.CANVAS.WIDTH / 2) - backgroundGameOverWidth / 2;
         const backgroundGamoOverY = (gv.CANVAS.HEIGHT / 2) - backgroundGameOverHeight / 2;
 
-        this.checkHighScore();
-
         const gameOverScreen = this.add.image(backgroundGamoOverX, backgroundGamoOverY, 'GameOverScreen').setDepth(1).setOrigin(0, 0);
 
-        const scoretext1 = this.add.text(gv.BACKGROUND.WIDTH / 2, backgroundGamoOverY + 250, `${this.score}`, {
-            font: '50px Geneva',
+        const scoretext1 = this.add.text(gv.BACKGROUND.WIDTH / 2 - 210, backgroundGamoOverY + 280, `${this.score}`, {
+            font: '60px Geneva',
             align: 'center' // the alignment of the text is independent of the bounds, try changing to 'center' or 'right'
         }).setDepth(1.1);
 
         scoretext1.x -= scoretext1.width / 2;
 
-        const highScoretext1 = this.add.text(gv.BACKGROUND.WIDTH / 2, backgroundGamoOverY + 420, `${this.highScore}`, {
-            font: '50px Geneva',
+        if (Number(this.score) > Number(this.highScore)) {
+            this.highScore = this.score;
+        }
+
+        const highScoretext1 = this.add.text(gv.BACKGROUND.WIDTH / 2 + 210, backgroundGamoOverY + 280, `${this.highScore}`, {
+            font: '60px Geneva',
             align: 'center' // the alignment of the text is independent of the bounds, try changing to 'center' or 'right'
         }).setDepth(1.1);
 
         highScoretext1.x -= highScoretext1.width / 2;
 
-        const buttonWidth = 412;
+        const buttonWidth = 628;
         const calcX = (backgroundGameOverWidth - buttonWidth) / 2;
-        const btnRetry = this.add.image(backgroundGamoOverX + calcX, backgroundGamoOverY + 540, 'RetryButton').setOrigin(0, 0).setDepth(1.1);
-        btnRetry.setInteractive({ useHandCursor: true });
+        const btnRetry = this.add.image(backgroundGamoOverX + calcX, backgroundGamoOverY + 1040, 'RetryButton').setOrigin(0, 0).setDepth(1.1);
         btnRetry.setInteractive({ useHandCursor: true });
         btnRetry.on('pointerup', () => this.resetGame());
+
+        await this.manageAndDrawLeaderBoard();
 
         this.menuGameOver.addMultiple([gameOverScreen, highScoretext1, scoretext1, btnRetry]);
     }
 
+    async manageAndDrawLeaderBoard() {
+        if (this.state === GAME_STATE.GAME_OVER) {
+            await this.postHighScore();
+            const leaderboard = await this.leaderBoard.getTable(this.playerKey);
+            this.drawLeaderboard(leaderboard);
+            return leaderboard;
+        }
+        return null;
+    }
+
+    drawLeaderboard(leaderBoard) {
+        const boardWidth = 512;
+        const boardHeight = 70;
+        const leaderBoardUserBasePostion = 890;
+        const userBoardX = (gv.CANVAS.WIDTH / 2) - boardWidth / 2;
+        let contador = 0;
+
+        for (let i = leaderBoard.length - 1; i >= 0; i--) {
+            const marginY = contador * 90; 
+            contador++;
+            const {
+                highScore, key, username, pos 
+            } = leaderBoard[i];
+            const name = username ? Utils.formatUserNameToBoard(username) : Utils.formatUserNameToBoard(key);
+
+            const userBoardY = (leaderBoardUserBasePostion + marginY) - boardHeight / 2;
+            const userBoardImgName = leaderBoard[i].me ? 'UserBoardPlayer' : 'UserBoard';
+            const userNameXPos = leaderBoard[i].me ? userBoardX + 195 : userBoardX + 140;
+            const userBoardScreen = this.add.image(userBoardX, userBoardY, userBoardImgName).setDepth(1).setOrigin(0, 0);
+            const currentUsernameElem = this.add.text(userNameXPos, userBoardY + 18, name, {
+                font: '30px Geneva'
+            }).setDepth(1.1);
+            const userBoardHighscore = this.add.text(userBoardX + 425, userBoardY + 20, highScore, {
+                font: '25px Geneva',
+                align: 'center',
+                fixedWidth: 80
+            }).setDepth(1.1);
+            const userBoardPos = this.add.text(userBoardX + 10, userBoardY + 20, pos, {
+                font: '25px Geneva',
+                align: 'center',
+                fixedWidth: 38
+            }).setDepth(1.1);
+
+            if (leaderBoard[i].me) {
+                currentUsernameElem.setText(Utils.formatUserNameToBoard(name, 10));
+                const btnEdit = this.add.image(userBoardX + 130, userBoardY + 7, 'BtnEdit').setDepth(1).setOrigin(0, 0);
+                btnEdit.setInteractive({ useHandCursor: true });
+                btnEdit.on('pointerup', () => this.showEditScreen(currentUsernameElem));
+                this.menuGameOver.add(btnEdit);
+            }
+
+            this.menuGameOver.addMultiple([userBoardScreen, userBoardHighscore, userBoardPos, currentUsernameElem]);
+        }
+    }
+
+    showEditScreen(currentUsernameElem) {
+        $('#userinput-board').show();
+        // eslint-disable-next-line @typescript-eslint/no-loop-func
+        $(document).on('click', '#button-cancel', () => {
+            $('#userinput-board').hide();
+        });
+
+        // eslint-disable-next-line @typescript-eslint/no-loop-func
+        $(document).on('click', '#button-accept', () => {
+            const usernameInput = $('#usernameInput').val() as string;
+            currentUsernameElem.setText(Utils.formatUserNameToBoard(usernameInput, 10));
+            this.leaderBoard.postPlayerUsername(usernameInput, this.playerKey);
+            $('#userinput-board').hide();
+        });
+    }
+    
     static loadPositionOnScreen() {
         gv.CANVAS.WIDTH = game.canvas.width;
         gv.CANVAS.HEIGHT = game.canvas.height;

@@ -3,6 +3,14 @@ export interface Position {
     y: number
 }
 
+export interface LeaderBoardPlayer{
+    name?: string,
+    position?: number,
+    key: string,
+    highScore: number,
+    timestamp: string;
+}
+
 // eslint-disable-next-line @typescript-eslint/naming-convention
 export enum GAME_STATE {
     RUNNING,

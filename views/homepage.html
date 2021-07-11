@@ -6,10 +6,42 @@
 		<title>Double Road</title>
 		<link rel="icon" type="image/png" href="/favicon.png"/>
 		<link rel="icon" type="image/png" href="/assets/logo.png"/>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 
 
 		<style>
 			body { margin: 0; }
+			#usernameInput {
+				font-size: 15px;
+				width: 280px;
+				height: 20px;
+				margin-top: 20px;
+				margin-left: calc(150px - 140px);
+			}
+			#userinput-board {
+				position: absolute;
+				width: 300px;
+				height: 100px;
+				top: calc(50% - 50px);
+				left: calc(50% - 150px);
+				background-color: aliceblue;
+				display: none;
+				border: 2px solid #5c6787;
+			}
+			#userinput-button-div {
+				display: inline-flex;
+				justify-content: center;
+				align-items: center;
+				width: 100%;
+			}
+			.userinput-buttons{
+				margin:10px;
+				background-color: #5c6787;
+				color: white;
+				width: 100px;
+				height: 30px;
+			}
+
 			canvas { width: 100%; height: 100% }
 			@media screen and (min-width: 320px) and (max-width: 767px) and (orientation: portrait) {
 				html {
@@ -23,13 +55,22 @@
 					left: 0;
 				}
 			}
-
 		</style>
 	</head>
 
 	<body>
+
+		<div id='userinput-board'>
+			<input type="text" id='usernameInput' name="nameField" placeholder="Enter your name">
+			<div id='userinput-button-div'>
+				<button class='userinput-buttons' id='button-accept'>Accept</button>
+				<button class='userinput-buttons' id='button-cancel'>Cancel</button>
+			</div>
+		</div>
+
 		<div style="font-family:font1; position:absolute; left:-1000px; visibility:hidden;">.</div>
 		<script src="https://cdn.jsdelivr.net/npm/phaser@3.16.2/dist/phaser.js"></script>
+
 		<script src="/dist/app.js"></script>
 	</body>
 

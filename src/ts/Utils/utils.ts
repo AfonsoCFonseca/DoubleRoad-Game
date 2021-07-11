@@ -1,6 +1,6 @@
-import { scene } from "../App"
-import { Position, SIDE } from "../game.interfaces"
-import * as consts from "./gameValues"
+import { scene } from '../App';
+import { Position, SIDE } from '../game.interfaces';
+import * as consts from './gameValues';
 
 // eslint-disable-next-line import/prefer-default-export
 export class Utils {
@@ -66,4 +66,37 @@ export class Utils {
         }
         return '';
     }
+
+    public static requestBE({ type, url, obj }:{ type:string, url:string, obj?:any }) {
+        return new Promise((resolve) => {
+            setTimeout(
+                () => {
+                    $.ajax({
+                        type,
+                        url,
+                        data: type === 'POST' ? obj : null,
+                        success: (result) => {
+                            if (result.status === 200) {
+                                resolve(result.obj);
+                            } else {
+                                resolve(null);
+                                console.log('DB failed');
+                            }
+                        }
+                    });
+                }, 
+                Math.floor(Math.random() * 100) + 1
+            );
+        });
+    }
+
+    public static formatUserNameToBoard(str:string, length?:number): string {
+        const substringNum = length || 13;
+        return str.substr(0, substringNum) + (str.length >= substringNum ? '..' : '');
+    }
 }
+
+// function axios(arg0: { method: string; url: string; data: { firstName: string; lastName: string; }; }) {
+//     throw new Error("Function not implemented.");
+// }
+
