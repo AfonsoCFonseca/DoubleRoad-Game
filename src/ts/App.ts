@@ -17,6 +17,7 @@ export class GameScene extends Phaser.Scene {
     private enemiesGroup: Phaser.GameObjects.Group;
     private startUI: Phaser.GameObjects.Group;
     private menuGameOver: Phaser.GameObjects.Group;
+    private menuPause: Phaser.GameObjects.Group;
     private startScreenImg: Phaser.GameObjects.Image;
     private tutorial: Phaser.GameObjects.Image;
     private startScreenImgInitialY: number;
@@ -62,6 +63,9 @@ export class GameScene extends Phaser.Scene {
         this.load.image('carIcon', 'assets/carIcon.png');
         this.load.image('PauseButton', 'assets/pauseButton.png');
         this.load.image('BtnEdit', 'assets/btnEdit.png');
+        this.load.image('pauseBG', 'assets/pauseBG.png');
+        this.load.image('ContinueRetryBtn', 'assets/continueRetryBtn.png');
+        this.load.image('PauseRetryBtn', 'assets/pauseRetryBtn1.png');
         
         this.load.spritesheet('cars_sheet', 'assets/cars_sheet.png', {
             frameWidth: gv.CAR.WIDTH,
@@ -84,6 +88,7 @@ export class GameScene extends Phaser.Scene {
         });
 
         this.menuGameOver = this.add.group();
+        this.menuPause = this.add.group();
 
         GameScene.loadPositionOnScreen();
 
@@ -284,8 +289,8 @@ export class GameScene extends Phaser.Scene {
         console.log(player);
     }
 
-    async postHighScore() {
-        if (Number(this.score) > Number(this.highScore)) {
+    async postHighScore(isHighScore:boolean) {
+        if (isHighScore) {
             await this.leaderBoard.postPlayerInLeaderBoard(this.highScore, this.playerKey);
         }
     }
@@ -311,7 +316,40 @@ export class GameScene extends Phaser.Scene {
 
         this.add.image(5, 50, 'carIcon').setDepth(2).setOrigin(0, 0);
 
-        this.add.image(960, 50, 'PauseButton').setDepth(1).setOrigin(0, 0);
+        const pauseBtn = this.add.image(960, 50, 'PauseButton').setDepth(1).setOrigin(0, 0);
+        pauseBtn.setInteractive({ useHandCursor: true });
+        pauseBtn.on('pointerup', () => this.pauseMenu());
+    }
+
+    pauseMenu() {
+        const timeWhenItStopped = this.time.now;
+        if (this.state !== GAME_STATE.PAUSE) {
+            const imageHeight = 246;
+            const yPosition = gv.CANVAS.HEIGHT / 2 - imageHeight / 2;
+            const pauseMenu = this.add.image(0, yPosition, 'pauseBG').setDepth(1).setOrigin(0, 0);
+            const pauseRetryBtn = this.add.image(200, yPosition + 100, 'PauseRetryBtn').setDepth(1).setOrigin(0, 0);
+            const continueRetryBtn = this.add.image(700, yPosition + 100, 'ContinueRetryBtn').setDepth(1).setOrigin(0, 0);
+            pauseRetryBtn.setInteractive({ useHandCursor: true });
+            pauseRetryBtn.on('pointerup', () => {
+                this.menuPause.clear(true, true);
+                this.resetGame();
+            });
+            
+            continueRetryBtn.setInteractive({ useHandCursor: true });
+            continueRetryBtn.on('pointerup', () => this.continueGame(timeWhenItStopped));
+    
+            this.menuPause.addMultiple([pauseMenu, pauseRetryBtn, continueRetryBtn]);
+            this.state = GAME_STATE.PAUSE;
+        } else {
+            this.continueGame(timeWhenItStopped);
+        }
+    }
+
+    continueGame(timeWhenItStopped:number) {
+        this.menuPause.clear(true, true);
+        this.state = GAME_STATE.RUNNING;
+        console.log( spawner.getTimeBetweenSpawn(timeWhenItStopped));
+        setTimeout(() => spawner.createEnemy(), spawner.currentGap);
     }
 
     showStartingScreen() {
@@ -359,6 +397,7 @@ export class GameScene extends Phaser.Scene {
         const backgroundGameOverHeight = 1300;
         const backgroundGamoOverX = (gv.CANVAS.WIDTH / 2) - backgroundGameOverWidth / 2;
         const backgroundGamoOverY = (gv.CANVAS.HEIGHT / 2) - backgroundGameOverHeight / 2;
+        let isHighScore = false;
 
         const gameOverScreen = this.add.image(backgroundGamoOverX, backgroundGamoOverY, 'GameOverScreen').setDepth(1).setOrigin(0, 0);
 
@@ -371,6 +410,7 @@ export class GameScene extends Phaser.Scene {
 
         if (Number(this.score) > Number(this.highScore)) {
             this.highScore = this.score;
+            isHighScore = true;
         }
 
         const highScoretext1 = this.add.text(gv.BACKGROUND.WIDTH / 2 + 210, backgroundGamoOverY + 280, `${this.highScore}`, {
@@ -386,14 +426,14 @@ export class GameScene extends Phaser.Scene {
         btnRetry.setInteractive({ useHandCursor: true });
         btnRetry.on('pointerup', () => this.resetGame());
 
-        await this.manageAndDrawLeaderBoard();
+        await this.manageAndDrawLeaderBoard(isHighScore);
 
         this.menuGameOver.addMultiple([gameOverScreen, highScoretext1, scoretext1, btnRetry]);
     }
 
-    async manageAndDrawLeaderBoard() {
+    async manageAndDrawLeaderBoard(isHighScore: boolean) {
         if (this.state === GAME_STATE.GAME_OVER) {
-            await this.postHighScore();
+            await this.postHighScore(isHighScore);
             const leaderboard = await this.leaderBoard.getTable(this.playerKey);
             this.drawLeaderboard(leaderboard);
             return leaderboard;
@@ -434,6 +474,10 @@ export class GameScene extends Phaser.Scene {
                 fixedWidth: 38
             }).setDepth(1.1);
 
+            const carImg = this.add.image(userBoardX + 81, userBoardY + 18, 'carIcon').setDepth(2).setOrigin(0, 0);
+            const color = `0x${Utils.getRandomColor()}`;
+            const iconRect = scene.add.rectangle(userBoardX + 62, userBoardY + 8, 62, 55, color).setDepth(1).setOrigin(0, 0);
+
             if (leaderBoard[i].me) {
                 currentUsernameElem.setText(Utils.formatUserNameToBoard(name, 10));
                 const btnEdit = this.add.image(userBoardX + 130, userBoardY + 7, 'BtnEdit').setDepth(1).setOrigin(0, 0);
@@ -442,7 +486,7 @@ export class GameScene extends Phaser.Scene {
                 this.menuGameOver.add(btnEdit);
             }
 
-            this.menuGameOver.addMultiple([userBoardScreen, userBoardHighscore, userBoardPos, currentUsernameElem]);
+            this.menuGameOver.addMultiple([userBoardScreen, userBoardHighscore, userBoardPos, currentUsernameElem, carImg, iconRect]);
         }
     }
 

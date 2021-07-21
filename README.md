@@ -30,6 +30,10 @@ and removing them from the array, when they leave the screen.
 An abstract class made with the expectation of creating different enemies. By now, only exists a NormalEnemy class
 This class only draws the enemy, moves it and calls for deletion when reaching the end of the screen.
 
+### Leaderboard ###
+Made to handle every requests with the BE, since the BE is mostly leaderboard and user management requests.
+The UI for this class shows my position in the Leaderboard table, the 3 players before and after me.
+
 
 ---------------------------------------------------------------
 # Development
@@ -43,6 +47,11 @@ Then, I tuned the spawn time, car speed and road speed to give some balanced inc
 Made a few car sprites, applied some animations to the car player, created a Game Over Screen with a scoring system and a Starting Screen
 By then, I had created the enemy car movement and the road movement to give the feeling the player was going against the cars but the movement was not very fluidly. 
 So, I changed the Y axis speed of the enemy and road to look like the player was in the right direction but going faster than the other cars
+
+Created a BE relation with the creation of a Leaderboard. I've created a DB in Google Firestore ( no-SQL DB ). Made a single collection that saves each user, with score, timestamp and username.
+A document is created when a new user starts a session without cookie.
+When the gameover screen is shown, the BE is requested for the current user position in the table and his nearest players, in order to created the LeaderBoard UI.
+I created a security middleware in each request that can be used for a whitelist policy or authorization token verification. At this time i didn't used any middleware and made a different security approach.
 
 
 ---------------------------------------------------------------

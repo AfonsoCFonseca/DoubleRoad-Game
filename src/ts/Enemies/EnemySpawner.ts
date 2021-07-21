@@ -7,12 +7,25 @@ import NormalEnemy from './NormalEnemy';
 // eslint-disable-next-line import/prefer-default-export
 export class EnemySpawner {
     public currentEnemies: Enemy[] = [];
+    public currentGap: number;
+    private startingTime: number;
 
     constructor() {
         this.createEnemy();
     }
 
+    public getTimeBetweenSpawn(timeWhenItStopped) {
+        const timePassed = timeWhenItStopped - this.startingTime;
+
+        console.log(timePassed)
+        console.log(this.currentGap)
+        return this.currentGap - timePassed;
+    }
+
     public createEnemy() {
+        this.currentGap = scene.getGap();
+        this.startingTime = scene.time.now;
+
         let rndPos = scene.leftCar.getBothPos()[Math.floor(Utils.rndNumber(0, 2))];
         let rndSmallSize = Utils.rndNumber(-10, -75);
         const currentLeftCar = new NormalEnemy({ x: rndPos, y: -200 + rndSmallSize }); 
@@ -25,7 +38,7 @@ export class EnemySpawner {
 
         setTimeout(() => {
             if (scene.state === GAME_STATE.RUNNING) this.createEnemy();
-        }, scene.getGap());
+        }, this.currentGap);
     }
 
     public clearAllEnemies() {
