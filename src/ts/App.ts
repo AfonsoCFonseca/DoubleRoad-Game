@@ -104,8 +104,8 @@ export class GameScene extends Phaser.Scene {
         this.setKeys();
         this.showStartingScreen();
         this.leaderBoard = new LeaderBoard();
-        await this.getPlayer();
         map = new Map();
+        await this.getPlayer();
     }
 
     startGame() {
@@ -348,8 +348,8 @@ export class GameScene extends Phaser.Scene {
     continueGame(timeWhenItStopped:number) {
         this.menuPause.clear(true, true);
         this.state = GAME_STATE.RUNNING;
-        console.log( spawner.getTimeBetweenSpawn(timeWhenItStopped));
-        setTimeout(() => spawner.createEnemy(), spawner.currentGap);
+        const resultTime = spawner.getTimeBetweenSpawn(timeWhenItStopped);
+        setTimeout(() => spawner.createEnemy(), resultTime);
     }
 
     showStartingScreen() {

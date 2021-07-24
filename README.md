@@ -53,6 +53,14 @@ A document is created when a new user starts a session without cookie.
 When the gameover screen is shown, the BE is requested for the current user position in the table and his nearest players, in order to created the LeaderBoard UI.
 I created a security middleware in each request that can be used for a whitelist policy or authorization token verification. At this time i didn't used any middleware and made a different security approach.
 
+To finish the development of the project, I implemented the pause menu with a continue button and retry button
+
+# Future Implementation
+
+- Add a currency and the possibility of buying different cars 
+- Change the game for better sprites
+- Change the game UI
+- Build the game for Facebook Messenger game app
 
 ---------------------------------------------------------------
 # Scratches & Evolution
