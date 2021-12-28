@@ -63,7 +63,7 @@ To finish the development of the project, I implemented the pause menu with a co
 - Build the game for Facebook Messenger game app
 
 ---------------------------------------------------------------
-# Scratches & Evolution
+# Sketches & Evolution
 
  <p float="left">
    <img width="186" height="235" src='https://github.com/AfonsoCFonseca/DoubleRoad-Game/blob/master/screenshots/30_05.png' >
