@@ -7,6 +7,20 @@ An original game developed and design by me using phaser and TypeScript. An endl
 
 
 ---------------------------------------------------------------
+# How to Deploy
+On the project terminal run: 
+```
+npm i;
+npm run build;
+node index
+```
+then access on your browser to: localhost:8080
+
+To access a live version running on a server ( the server may take a few seconds to boot, before starting the game )
+
+-> https://doubleroad1991.onrender.com/ <-
+( also, it's a slow server )
+
 # Structure
 
 Created with 4 main Classes to manage the full game
